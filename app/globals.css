@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@layer base {
+  :root {
+    /* Warm charcoal + burnt orange theme */
+    --background:           28 18%  5%;   /* #0d0c09 */
+    --foreground:           32 25% 91%;   /* #ece7e1 */
+    --card:                 28 18%  7%;   /* #131110 */
+    --card-foreground:      32 25% 91%;
+    --popover:              28 16%  9%;
+    --popover-foreground:   32 25% 91%;
+    --primary:              20 80% 54%;   /* #e8622a burnt orange */
+    --primary-foreground:    0  0% 100%;
+    --secondary:            28 14% 16%;
+    --secondary-foreground: 32 25% 91%;
+    --muted:                28 14% 16%;
+    --muted-foreground:     28 10% 52%;   /* warm grey */
+    --accent:               28 14% 16%;
+    --accent-foreground:    32 25% 91%;
+    --destructive:           0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border:               28 12% 17%;   /* subtle warm border */
+    --input:                28 12% 14%;
+    --ring:                 20 80% 54%;   /* burnt orange */
+    --radius:               0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    @apply bg-surface-0 text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 14px;
+  }
+
+  body {
+    @apply bg-surface-0 text-foreground overflow-hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  /* Custom scrollbar — warm tones */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-surface-5 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-muted; }
+}
+
+@layer components {
+  .panel {
+    @apply bg-surface-1 border border-border/50 rounded-lg flex flex-col overflow-hidden;
+  }
+
+  .panel-header {
+    @apply flex items-center gap-2 px-3 py-2 border-b border-border/50 text-xs font-medium text-muted-foreground uppercase tracking-widest;
+  }
+
+  .btn-primary {
+    @apply px-3 py-1.5 bg-brand text-black text-xs font-medium rounded hover:bg-brand/90 active:scale-95 transition-all;
+  }
+
+  .btn-secondary {
+    @apply px-3 py-1.5 bg-surface-3 text-foreground text-xs font-medium rounded hover:bg-surface-4 transition-colors;
+  }
+
+  .btn-ghost {
+    @apply px-2 py-1 text-muted-foreground text-xs rounded hover:bg-surface-3 hover:text-foreground transition-colors;
+  }
+
+  .input-field {
+    @apply bg-surface-3 border border-border rounded px-2 py-1 text-xs text-foreground
+           placeholder:text-muted-foreground focus:outline-none focus:ring-1
+           focus:ring-brand focus:border-brand transition-colors;
+  }
+
+  .badge {
+    @apply text-2xs font-mono px-1.5 py-0.5 rounded-sm;
+  }
+
+  .badge-brand {
+    @apply badge bg-brand/15 text-brand;
+  }
+
+  .badge-warn {
+    @apply badge bg-warn/15 text-warn;
+  }
+}
+
+/* Engineering animations */
+@keyframes scan {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+.animate-scan { animation: scan 3s ease-in-out infinite; }
+
+/* Range input accent */
+input[type="range"] { accent-color: #e8622a; }
+
+/* Plotly theme overrides */
+.js-plotly-plot .plotly { background: transparent !important; }
