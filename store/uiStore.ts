@@ -77,6 +77,10 @@ export interface UIStore {
   hardpointMoveStep: number;   // mm per arrow-key press
   setHardpointMoveStep: (v: number) => void;
 
+  // Symmetric editing — mirror changes across vehicle centerline
+  mirrorEdits: boolean;
+  setMirrorEdits: (v: boolean) => void;
+
   // Actions
   setActivePanel: (panel: Panel) => void;
   togglePanel: (panel: Panel) => void;
@@ -128,6 +132,7 @@ export const useUIStore = create<UIStore>()(
     transparency: 0.3,
 
     hardpointMoveStep: 1,
+    mirrorEdits: true,
 
     selectedHardpointId: null,
     selectedCorner: 'all',
@@ -153,6 +158,9 @@ export const useUIStore = create<UIStore>()(
 
     setHardpointMoveStep: (v) =>
       set((state) => { state.hardpointMoveStep = v; }),
+
+    setMirrorEdits: (v) =>
+      set((state) => { state.mirrorEdits = v; }),
 
     setActivePanel: (panel) =>
       set((state) => { state.activePanel = panel; }),

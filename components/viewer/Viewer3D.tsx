@@ -105,17 +105,17 @@ export function Viewer3D({ className = '', showStats = false }: Viewer3DProps) {
 
 function useHardpointKeyboard() {
   const { vehicle, updateHardpoint } = useProjectStore();
-  const { selectedHardpointId, hardpointMoveStep, selectHardpoint } = useUIStore();
+  const { selectedHardpointId, hardpointMoveStep, selectHardpoint, mirrorEdits } = useUIStore();
 
   // Keep latest mutable values in a ref — listener set up once, reads from ref
-  const state = useRef({ selectedHardpointId, hardpointMoveStep, vehicle, updateHardpoint, selectHardpoint });
+  const state = useRef({ selectedHardpointId, hardpointMoveStep, vehicle, updateHardpoint, selectHardpoint, mirrorEdits });
   useEffect(() => {
-    state.current = { selectedHardpointId, hardpointMoveStep, vehicle, updateHardpoint, selectHardpoint };
+    state.current = { selectedHardpointId, hardpointMoveStep, vehicle, updateHardpoint, selectHardpoint, mirrorEdits };
   });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const { selectedHardpointId, hardpointMoveStep, vehicle, updateHardpoint, selectHardpoint } = state.current;
+      const { selectedHardpointId, hardpointMoveStep, vehicle, updateHardpoint, selectHardpoint, mirrorEdits } = state.current;
 
       // Escape deselects
       if (e.key === 'Escape') { selectHardpoint(null); return; }
@@ -150,7 +150,7 @@ function useHardpointKeyboard() {
       if (!hp) return;
 
       const newValue = hp.position[axis] + sign * hardpointMoveStep;
-      updateHardpoint(selectedHardpointId, axis, newValue);
+      updateHardpoint(selectedHardpointId, axis, newValue, mirrorEdits);
     };
 
     document.addEventListener('keydown', onKey);

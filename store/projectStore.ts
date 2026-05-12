@@ -64,7 +64,7 @@ export interface ProjectStore {
 
   // Actions
   setVehicle: (vehicle: VehicleSpec) => void;
-  updateHardpoint: (id: string, axis: 'x' | 'y' | 'z', value: number) => void;
+  updateHardpoint: (id: string, axis: 'x' | 'y' | 'z', value: number, mirror?: boolean) => void;
   updateMetadata: (metadata: Partial<ProjectMetadata>) => void;
   updateSettings: (settings: Partial<SimulationSettings>) => void;
   setFrontSweep: (sweep: KinematicSweep) => void;
@@ -135,20 +135,31 @@ export const useProjectStore = create<ProjectStore>()(
           state.metadata.modified = new Date().toISOString();
         }),
 
-      updateHardpoint: (id, axis, value) =>
+      updateHardpoint: (id, axis, value, mirror = false) =>
         set((state) => {
-          // Update ALL instances with matching id — same hardpoint is stored in both
-          // suspension corners and allHardpoints, both must be in sync.
-          const update = (obj: unknown): void => {
+          const mirroredId = mirror
+            ? findMirroredHardpointId(state.vehicle.allHardpoints, id)
+            : null;
+
+          // Update all instances of a given id throughout the vehicle tree
+          // (same hardpoint stored in suspension corners AND allHardpoints).
+          const updateById = (obj: unknown, targetId: string, targetValue: number): void => {
             if (typeof obj !== 'object' || obj === null) return;
             const record = obj as Record<string, unknown>;
-            if ('id' in record && record.id === id && 'position' in record) {
-              (record.position as Record<string, number>)[axis] = value;
+            if ('id' in record && record.id === targetId && 'position' in record) {
+              (record.position as Record<string, number>)[axis] = targetValue;
               return;
             }
-            for (const v of Object.values(record)) update(v);
+            for (const v of Object.values(record)) updateById(v, targetId, targetValue);
           };
-          update(state.vehicle);
+
+          updateById(state.vehicle, id, value);
+          if (mirroredId) {
+            // Y is lateral: negate it for the mirror side; X and Z carry across unchanged
+            const mirrorValue = axis === 'y' ? -value : value;
+            updateById(state.vehicle, mirroredId, mirrorValue);
+          }
+
           pushHistory(state, state.vehicle);
           state.isDirty = true;
           state.metadata.modified = new Date().toISOString();
@@ -254,3 +265,34 @@ export const useProjectStore = create<ProjectStore>()(
     { name: 'ProjectStore' }
   )
 );
+
+// ─── Mirror helper ────────────────────────────────────────────────────────────
+// Given a hardpoint id, find the corresponding hardpoint id on the opposite
+// side of the vehicle (FL↔FR, RL↔RR, rackLeft↔rackRight).
+
+function findMirroredHardpointId(
+  allHp: Record<string, unknown>,
+  id: string,
+): string | null {
+  type HpId  = { id: string };
+  type Corner = Record<string, HpId>;
+  const ap = allHp as {
+    frontLeft: Corner; frontRight: Corner;
+    rearLeft: Corner;  rearRight: Corner;
+    frontRackLeft?: HpId; frontRackRight?: HpId;
+  };
+
+  const pairs: [Corner, Corner][] = [
+    [ap.frontLeft, ap.frontRight],
+    [ap.rearLeft,  ap.rearRight],
+  ];
+  for (const [left, right] of pairs) {
+    for (const key of Object.keys(left)) {
+      if (left[key]?.id === id)  return right[key]?.id ?? null;
+      if (right[key]?.id === id) return left[key]?.id  ?? null;
+    }
+  }
+  if (ap.frontRackLeft?.id  === id) return ap.frontRackRight?.id ?? null;
+  if (ap.frontRackRight?.id === id) return ap.frontRackLeft?.id  ?? null;
+  return null;
+}

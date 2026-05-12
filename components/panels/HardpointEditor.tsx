@@ -84,7 +84,7 @@ const CORNERS: { key: CornerKey; label: string; short: string }[] = [
 
 export function HardpointEditor() {
   const { vehicle, updateHardpoint } = useProjectStore();
-  const { selectedHardpointId, selectHardpoint } = useUIStore();
+  const { selectedHardpointId, selectHardpoint, mirrorEdits, setMirrorEdits } = useUIStore();
   const [activeCorner, setActiveCorner] = useState<CornerKey>('frontLeft');
   const [viewMode, setViewMode] = useState<'tree' | 'table'>('tree');
   const [expandedSubs, setExpandedSubs] = useState<Set<string>>(
@@ -113,13 +113,13 @@ export function HardpointEditor() {
 
   const handleUpdate = useCallback(
     (id: string, axis: 'x' | 'y' | 'z', value: number) =>
-      updateHardpoint(id, axis, value),
-    [updateHardpoint]
+      updateHardpoint(id, axis, value, mirrorEdits),
+    [updateHardpoint, mirrorEdits]
   );
 
   return (
     <div className="flex flex-col h-full text-xs">
-      {/* View mode toggle */}
+      {/* View mode toggle + mirror toggle */}
       <div className="flex items-center gap-1 px-2 py-1.5 border-b border-border shrink-0 bg-surface-1">
         <span className="text-2xs text-muted-foreground/50 uppercase tracking-wider mr-1">View</span>
         {(['tree', 'table'] as const).map(mode => (
@@ -136,6 +136,19 @@ export function HardpointEditor() {
             {mode === 'tree' ? '⊞ Tree' : '⊡ Table'}
           </button>
         ))}
+        <div className="flex-1" />
+        <button
+          onClick={() => setMirrorEdits(!mirrorEdits)}
+          title="Mirror edits across vehicle centreline (FL↔FR, RL↔RR)"
+          className={cn(
+            'flex items-center gap-1 px-2 py-1 rounded text-2xs font-medium transition-colors border',
+            mirrorEdits
+              ? 'bg-brand/15 text-brand border-brand/25'
+              : 'text-muted-foreground border-border/40 hover:text-foreground'
+          )}
+        >
+          ⇌ Mirror
+        </button>
       </div>
 
       {/* Corner tabs */}

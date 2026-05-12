@@ -109,6 +109,12 @@ export function SuspensionGeometry({ vehicle, heave = 0, roll = 0, pitch = 0, st
         />
       )}
 
+      {/* Steering rack bar */}
+      <SteeringRack
+        left={allHardpoints.frontRackLeft}
+        right={allHardpoints.frontRackRight}
+      />
+
       {showChassis && (
         <ChassisWireframe
           wheelbase={vehicle.wheelbase}
@@ -204,9 +210,14 @@ function CornerGeometry({ hardpoints: hp, color, showWheels, showContactPatches,
           <ArmLine from={sv(hp.lcaChassisRear.position)}  to={sv(hp.lcaUpright.position)} color="#f472b6" radius={0.004} />
           <ArmLine from={sv(hp.ucaUpright.position)} to={sv(hp.lcaUpright.position)} color="#fb923c" radius={0.006} />
           <ArmLine from={sv(hp.tieRodChassis.position)} to={sv(hp.tieRodUpright.position)} color="#a78bfa" radius={0.003} />
-          <ArmLine from={sv(hp.shockChassis.position)} to={sv(hp.shockUpright.position)} color="#facc15" radius={0.005} />
         </>
       )}
+
+      {/* Coilover shock — always visible, more distinctive than arm lines */}
+      <Coilover
+        chassis={sv(hp.shockChassis.position)}
+        upright={sv(hp.shockUpright.position)}
+      />
 
       {/* Wheel */}
       {showWheels && (
@@ -312,6 +323,76 @@ function SwingAxisLine({ frontRC, rearRC, frontX, rearX }: {
   const from: [number, number, number] = [frontX, Math.max(-0.02, frontRC.z * MM), -(Math.max(-4, Math.min(4, frontRC.y * MM)))];
   const to:   [number, number, number] = [rearX,  Math.max(-0.02, rearRC.z  * MM), -(Math.max(-4, Math.min(4, rearRC.y  * MM)))];
   return <ThinLine from={from} to={to} color="#e8622a" opacity={0.35} />;
+}
+
+// ─── Coilover shock ───────────────────────────────────────────────────────────
+// Renders a coilover as: thin rod (damper body) + spring section in middle.
+
+function Coilover({ chassis, upright }: { chassis: Vec3; upright: Vec3 }) {
+  const { bodyGeo, bodyQuat, bodyPos, bodyLen, springGeo, springQuat, springPos, springLen } = useMemo(() => {
+    const pC = new THREE.Vector3(chassis.x, chassis.z, -chassis.y);
+    const pU = new THREE.Vector3(upright.x, upright.z, -upright.y);
+    const dir = pU.clone().sub(pC).normalize();
+    const total = pC.distanceTo(pU);
+
+    // Split: top 30% = upper rod, middle 40% = spring, bottom 30% = lower rod
+    const springStart = pC.clone().addScaledVector(dir, total * 0.30);
+    const springEnd   = pC.clone().addScaledVector(dir, total * 0.70);
+    const sLen = springStart.distanceTo(springEnd);
+    const bLen = total;
+
+    // Full body (damper rod)
+    const bMid  = pC.clone().add(pU).multiplyScalar(0.5);
+    const bQuat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+
+    // Spring section mid
+    const sMid  = springStart.clone().add(springEnd).multiplyScalar(0.5);
+    const sQuat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+
+    return {
+      bodyGeo:   new THREE.CylinderGeometry(0.007, 0.007, bLen, 8),
+      bodyQuat:  bQuat, bodyPos: bMid, bodyLen: bLen,
+      springGeo: new THREE.CylinderGeometry(0.014, 0.014, sLen, 12, 1, true),
+      springQuat: sQuat, springPos: sMid, springLen: sLen,
+    };
+  }, [chassis, upright]);
+
+  return (
+    <group>
+      {/* Damper rod */}
+      <mesh geometry={bodyGeo} position={bodyPos} quaternion={bodyQuat}>
+        <meshStandardMaterial color="#e8622a" roughness={0.25} metalness={0.8} />
+      </mesh>
+      {/* Spring coil (open-ended cylinder as proxy) */}
+      <mesh geometry={springGeo} position={springPos} quaternion={springQuat}>
+        <meshStandardMaterial color="#facc15" roughness={0.4} metalness={0.5}
+          side={THREE.DoubleSide} transparent opacity={0.85} wireframe />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Steering rack bar ────────────────────────────────────────────────────────
+
+import type { Hardpoint } from '@/types/hardpoint';
+
+function SteeringRack({ left, right }: { left: Hardpoint; right: Hardpoint }) {
+  const lPos = sv(left.position);
+  const rPos = sv(right.position);
+
+  return (
+    <>
+      {/* Rack tube */}
+      <ArmLine from={lPos} to={rPos} color="#6d6d8a" radius={0.009} />
+      {/* Mount points */}
+      {[lPos, rPos].map((p, i) => (
+        <mesh key={i} position={[p.x, p.z, -p.y]}>
+          <sphereGeometry args={[0.010, 10, 8]} />
+          <meshStandardMaterial color="#a78bfa" roughness={0.3} metalness={0.6} />
+        </mesh>
+      ))}
+    </>
+  );
 }
 
 // ─── Arm line (cylinder) ──────────────────────────────────────────────────────
