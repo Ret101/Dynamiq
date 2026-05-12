@@ -15,6 +15,8 @@ import { SteeringPanel } from '@/components/panels/SteeringPanel';
 import { LoadTransferPanel } from '@/components/panels/LoadTransferPanel';
 import { OptimizationPanel } from '@/components/panels/OptimizationPanel';
 import { CVTCalculatorPage } from '@/components/cvt/CVTCalculatorPage';
+import { GearboxCalculatorPage } from '@/components/gearbox/GearboxCalculatorPage';
+import { PartsReferencePage } from '@/components/reference/PartsReferencePage';
 import { useUIStore } from '@/store/uiStore';
 import { useProjectStore } from '@/store/projectStore';
 import { dbSave } from '@/lib/db';
@@ -64,6 +66,14 @@ export default function WorkspacePage() {
       {appMode === 'cvt' ? (
         <div className="flex-1 min-w-0 overflow-hidden">
           <CVTCalculatorPage />
+        </div>
+      ) : appMode === 'gearbox' ? (
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <GearboxCalculatorPage />
+        </div>
+      ) : appMode === 'reference' ? (
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <PartsReferencePage />
         </div>
       ) : (
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">

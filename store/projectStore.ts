@@ -65,6 +65,7 @@ export interface ProjectStore {
   // Actions
   setVehicle: (vehicle: VehicleSpec) => void;
   updateHardpoint: (id: string, axis: 'x' | 'y' | 'z', value: number, mirror?: boolean) => void;
+  updateActuationType: (axle: 'front' | 'rear', type: 'direct' | 'pushrod' | 'pullrod') => void;
   updateMetadata: (metadata: Partial<ProjectMetadata>) => void;
   updateSettings: (settings: Partial<SimulationSettings>) => void;
   setFrontSweep: (sweep: KinematicSweep) => void;
@@ -160,6 +161,15 @@ export const useProjectStore = create<ProjectStore>()(
             updateById(state.vehicle, mirroredId, mirrorValue);
           }
 
+          pushHistory(state, state.vehicle);
+          state.isDirty = true;
+          state.metadata.modified = new Date().toISOString();
+        }),
+
+      updateActuationType: (axle, type) =>
+        set((state) => {
+          if (axle === 'front') state.vehicle.frontSuspension.actuationType = type;
+          else state.vehicle.rearSuspension.actuationType = type;
           pushHistory(state, state.vehicle);
           state.isDirty = true;
           state.metadata.modified = new Date().toISOString();

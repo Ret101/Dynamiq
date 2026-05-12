@@ -40,10 +40,10 @@ export interface CornerKinematics {
   motionRatio: number;
   wheelRate: number;      // N/mm
 
-  // Anti-geometry
-  antiDive: number;       // fraction (0–1)
-  antiSquat: number;      // fraction (0–1)
-  antiLift: number;       // fraction (0–1)
+  // Anti-geometry (fraction of inertial reaction carried by links; >1 = jacking tendency)
+  antiDive: number;
+  antiSquat: number;
+  antiLift: number;
 
   // Track / wheelbase change
   trackChange: number;    // mm delta from static

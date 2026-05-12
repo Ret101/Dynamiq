@@ -5,7 +5,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
-export type AppMode = 'suspension' | 'cvt';
+export type AppMode = 'suspension' | 'cvt' | 'gearbox' | 'reference';
 
 export type Panel =
   | 'project'

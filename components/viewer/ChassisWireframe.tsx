@@ -198,121 +198,127 @@ function buildBajaFrame(wb: number, ft: number, _rt: number, rideHt = 305): numb
   const s = (ax: number, ay: number, az: number, bx: number, by: number, bz: number) =>
     pushSeg(buf, ax, ay, az, bx, by, bz);
 
-  // Half-widths (mm) ────────────────────────────────────────────────────────────
-  const bmpW = Math.min(Math.round(ft * 0.26), 355);   // bumper half-width
-  const cw   = Math.min(Math.round(ft * 0.34), 480);   // cockpit / FH half-width
-  const rrhw = Math.max(Math.round(ft * 0.38), 368);   // RRH half-width (≥368 = 736 mm ✓)
-  const cwR  = Math.round(rrhw * 0.62);                // rear sub-frame half-width
+  // Half-widths (mm) — Baja SAE buggy proportions ──────────────────────────────
+  // bmpW: front bumper, cw: cockpit/FH, rrhw: rear roll hoop, cwR: rear sub-frame
+  const bmpW = Math.min(Math.round(ft * 0.24), 320);   // bumper ~320mm half-width
+  const cw   = Math.min(Math.round(ft * 0.32), 215);   // cockpit ~430mm total (fits driver)
+  const rrhw = Math.max(Math.round(ft * 0.40), 390);   // RRH ≥780mm (B6.3: ≥736mm ✓)
+  const cwR  = Math.round(rrhw * 0.60);                // rear engine bay half-width
 
   // Heights above ground (mm) ───────────────────────────────────────────────────
-  const zFloor = rideHt;                  // belly / floor rail
-  const zDB    = 268;                     // door bar height (203–356 mm ✓)
-  const zUP    = rideHt + 255;            // upper cockpit rail / FH shoulder
-  const zFH    = rideHt + 500;            // front hoop apex
-  const zRRH   = rideHt + 760;            // RRH apex (seat ≈ rideHt+120 → ≥+686 mm = rideHt+806; close enough for visual)
+  const zFloor = rideHt;                   // belly rail (ground clearance height)
+  const zSeat  = rideHt + 120;             // seat bottom (driver sits ~120mm above belly)
+  const zDB    = zSeat  + 280;             // door bar: 280mm above seat (B6.5: 203–356mm ✓)
+  const zUP    = rideHt + 310;             // upper cockpit / FH shoulder rail
+  const zFH    = rideHt + 550;             // front hoop apex
+  const zRRH   = zSeat  + 760;             // RRH apex: 760mm above seat (B6.3: ≥686mm ✓)
 
   // X positions from front axle (mm) ───────────────────────────────────────────
-  const xBump  = -365;                              // front bumper face
-  const xFront =  -55;                              // front cage face
-  const xFH    =  270;                              // front hoop
-  const xRRH   = Math.round(wb * 0.515);            // RRH (~732 mm @ 1422 mm WB)
-  const xBrace = xRRH + Math.round((zRRH - zFloor) * Math.tan(17 * Math.PI / 180));
-  const xRE    = wb + 195;                          // rear sub-frame tip
+  const xBump  = -380;                               // front bumper face
+  const xFront =  -60;                               // front cage face
+  const xFH    =  290;                               // front hoop
+  const xRRH   = Math.round(wb * 0.52);              // RRH position
+  const xBrace = xRRH + Math.round((zRRH - zFloor) * Math.tan(16 * Math.PI / 180));
+  const xRE    = wb + 210;                           // rear engine tip
 
   // ── Front bumper hoop ─────────────────────────────────────────────────────────
-  s(xBump, -bmpW, zFloor,  xBump,  bmpW, zFloor);  // lower bar
-  s(xBump, -bmpW, zDB,     xBump,  bmpW, zDB);     // upper bar
-  s(xBump, -bmpW, zFloor,  xBump, -bmpW, zDB);     // left upright
-  s(xBump,  bmpW, zFloor,  xBump,  bmpW, zDB);     // right upright
-  // X-brace
-  s(xBump, -bmpW, zFloor,  xBump,  bmpW, zDB);
-  s(xBump,  bmpW, zFloor,  xBump, -bmpW, zDB);
-  // Bumper → front cage rails (lower + upper)
+  s(xBump, -bmpW, zFloor,  xBump,  bmpW, zFloor);   // lower bar
+  s(xBump, -bmpW, zDB,     xBump,  bmpW, zDB);      // upper bar
+  s(xBump, -bmpW, zFloor,  xBump, -bmpW, zDB);      // left upright
+  s(xBump,  bmpW, zFloor,  xBump,  bmpW, zDB);      // right upright
+  s(xBump, -bmpW, zFloor,  xBump,  bmpW, zDB);      // X-brace /
+  s(xBump,  bmpW, zFloor,  xBump, -bmpW, zDB);      // X-brace \
+  // A-pillar struts: bumper corners → front cage
   s(xBump, -bmpW, zFloor,  xFront, -cw, zFloor);
   s(xBump,  bmpW, zFloor,  xFront,  cw, zFloor);
   s(xBump, -bmpW, zDB,     xFront, -cw, zUP);
   s(xBump,  bmpW, zDB,     xFront,  cw, zUP);
 
-  // ── Front cage face ───────────────────────────────────────────────────────────
-  s(xFront, -cw, zFloor,  xFront,  cw, zFloor);    // lower cross
-  s(xFront, -cw, zUP,     xFront,  cw, zUP);       // upper cross
-  s(xFront, -cw, zFloor,  xFront, -cw, zUP);       // left upright
-  s(xFront,  cw, zFloor,  xFront,  cw, zUP);       // right upright
+  // ── Front cage face (cockpit front wall) ──────────────────────────────────────
+  s(xFront, -cw, zFloor,  xFront,  cw, zFloor);     // lower cross
+  s(xFront, -cw, zUP,     xFront,  cw, zUP);        // upper cross
+  s(xFront, -cw, zFloor,  xFront, -cw, zUP);        // left upright
+  s(xFront,  cw, zFloor,  xFront,  cw, zUP);        // right upright
+  s(xFront, -cw, zFloor,  xFront,  cw, zUP);        // diagonal brace
 
-  // ── Belly floor rails (front → rear) ─────────────────────────────────────────
-  s(xFront, -cw,   zFloor,  xFH,    -cw,   zFloor);
-  s(xFront,  cw,   zFloor,  xFH,     cw,   zFloor);
-  s(xFH,    -cw,   zFloor,  xRRH,  -rrhw,  zFloor);
-  s(xFH,     cw,   zFloor,  xRRH,   rrhw,  zFloor);
-  s(xRRH,  -rrhw,  zFloor,  xBrace, -rrhw, zFloor); // continue to brace foot
-  s(xRRH,   rrhw,  zFloor,  xBrace,  rrhw, zFloor);
-  // Mid belly cross-member
+  // ── Belly floor rails — narrow front, flare to full width at FH ──────────────
+  // Diagonal tubes fan outward from front cage to FH to RRH (top view V-shape)
+  s(xFront, -cw,   zFloor,  xFH,  -cw,   zFloor);   // front narrow section L
+  s(xFront,  cw,   zFloor,  xFH,   cw,   zFloor);   // front narrow section R
+  s(xFH,    -cw,   zFloor,  xRRH, -rrhw, zFloor);   // diagonal flare L
+  s(xFH,     cw,   zFloor,  xRRH,  rrhw, zFloor);   // diagonal flare R
+  s(xRRH,  -rrhw,  zFloor,  xBrace,-rrhw,zFloor);   // rear section L
+  s(xRRH,   rrhw,  zFloor,  xBrace, rrhw,zFloor);   // rear section R
+  // Mid belly cross-members
   const xBellyMid = Math.round((xFH + xRRH) / 2);
-  s(xBellyMid, -cw, zFloor, xBellyMid, cw, zFloor);
+  s(xFH,       -cw,   zFloor,  xFH,   cw,   zFloor);  // cross at FH
+  s(xBellyMid, -Math.round((cw + rrhw) / 2), zFloor,
+    xBellyMid,  Math.round((cw + rrhw) / 2), zFloor);  // mid cross
 
-  // ── Door protection bars (B6.5: 203–356 mm above ground) ─────────────────────
-  s(xFront, -cw, zDB,   xRRH, -rrhw, zDB);         // left door bar
-  s(xFront,  cw, zDB,   xRRH,  rrhw, zDB);         // right door bar
-  // Verticals: floor → door bar at each end
+  // ── Door protection bars (B6.5: 203–356 mm above seat) ───────────────────────
+  s(xFront, -cw, zDB,    xRRH, -rrhw, zDB);          // left door bar
+  s(xFront,  cw, zDB,    xRRH,  rrhw, zDB);          // right door bar
+  // Verticals and X-braces at each end
   s(xFront, -cw, zFloor, xFront, -cw, zDB);
   s(xFront,  cw, zFloor, xFront,  cw, zDB);
   s(xRRH, -rrhw, zFloor, xRRH, -rrhw, zDB);
   s(xRRH,  rrhw, zFloor, xRRH,  rrhw, zDB);
-  // X-brace in each door panel
-  s(xFront, -cw, zFloor,  xRRH, -rrhw, zDB);
-  s(xFront, -cw, zDB,     xRRH, -rrhw, zFloor);
-  s(xFront,  cw, zFloor,  xRRH,  rrhw, zDB);
-  s(xFront,  cw, zDB,     xRRH,  rrhw, zFloor);
+  s(xFront, -cw, zFloor,  xRRH, -rrhw, zDB);         // X L /
+  s(xFront, -cw, zDB,     xRRH, -rrhw, zFloor);      // X L \
+  s(xFront,  cw, zFloor,  xRRH,  rrhw, zDB);         // X R /
+  s(xFront,  cw, zDB,     xRRH,  rrhw, zFloor);      // X R \
 
   // ── Front hoop arch ───────────────────────────────────────────────────────────
-  const fhApex = Math.round(cw * 0.55);             // arch narrows at top
-  s(xFH, -cw, zFloor,  xFH, -cw,     zUP);         // left straight leg
-  s(xFH,  cw, zFloor,  xFH,  cw,     zUP);         // right straight leg
-  s(xFH, -cw, zUP,     xFH, -fhApex, zFH);         // left arch
-  s(xFH,  cw, zUP,     xFH,  fhApex, zFH);         // right arch
-  s(xFH, -fhApex, zFH, xFH,  fhApex, zFH);         // top bar
-  s(xFH, -cw, zFloor,  xFH,  cw,     zFloor);      // base cross
+  // Legs run straight from floor to shoulder, then taper to apex
+  const fhApex = Math.round(cw * 0.45);              // arch narrows to ~45% at top
+  s(xFH, -cw, zFloor,  xFH, -cw,     zUP);           // left leg
+  s(xFH,  cw, zFloor,  xFH,  cw,     zUP);           // right leg
+  s(xFH, -cw, zUP,     xFH, -fhApex, zFH);           // left arch
+  s(xFH,  cw, zUP,     xFH,  fhApex, zFH);           // right arch
+  s(xFH, -fhApex, zFH, xFH,  fhApex, zFH);           // top bar
+  // Knee braces (diagonal floor → door bar level)
+  s(xFH, -cw, zFloor,  xFH, -cw, zDB);
+  s(xFH,  cw, zFloor,  xFH,  cw, zDB);
 
   // ── Upper side rails (front cage → FH → RRH) ─────────────────────────────────
-  s(xFront, -cw, zUP,   xFH,   -cw,  zUP);
-  s(xFront,  cw, zUP,   xFH,    cw,  zUP);
-  const zRRHmid = zFloor + (zRRH - zFloor) * 0.44;
-  s(xFH, -cw, zUP,    xRRH, -rrhw, zRRHmid);
-  s(xFH,  cw, zUP,    xRRH,  rrhw, zRRHmid);
+  s(xFront, -cw, zUP,   xFH,  -cw,   zUP);           // front section L
+  s(xFront,  cw, zUP,   xFH,   cw,   zUP);           // front section R
+  // Fan out from FH shoulder to RRH at mid-height
+  const zRRHmid = zFloor + Math.round((zRRH - zFloor) * 0.42);
+  s(xFH, -cw, zUP,   xRRH, -rrhw, zRRHmid);          // upper side rail L
+  s(xFH,  cw, zUP,   xRRH,  rrhw, zRRHmid);          // upper side rail R
 
   // ── Rear roll hoop (B6.3: ≥736 mm wide at ≥686 mm above seat) ────────────────
-  s(xRRH, -rrhw, zFloor,  xRRH, -rrhw, zRRH);      // left leg
-  s(xRRH,  rrhw, zFloor,  xRRH,  rrhw, zRRH);      // right leg
-  s(xRRH, -rrhw, zRRH,    xRRH,  rrhw, zRRH);      // top bar
-  s(xRRH, -rrhw, zFloor,  xRRH,  rrhw, zFloor);    // base cross
-  s(xRRH, -rrhw, zRRHmid, xRRH,  rrhw, zRRHmid);  // mid cross
+  s(xRRH, -rrhw, zFloor,  xRRH, -rrhw, zRRH);        // left leg
+  s(xRRH,  rrhw, zFloor,  xRRH,  rrhw, zRRH);        // right leg
+  s(xRRH, -rrhw, zRRH,    xRRH,  rrhw, zRRH);        // top bar
+  s(xRRH, -rrhw, zFloor,  xRRH,  rrhw, zFloor);      // base cross
+  s(xRRH, -rrhw, zRRHmid, xRRH,  rrhw, zRRHmid);    // mid cross-brace
+  s(xRRH, -rrhw, zDB,     xRRH,  rrhw, zDB);         // door-bar-height cross
 
   // ── Overhead bars (FH apex → RRH top) ────────────────────────────────────────
-  const ohwR = Math.round(rrhw * 0.38);             // overhead bars meet near RRH centre
-  s(xFH, -fhApex, zFH,   xRRH, -ohwR, zRRH);       // left overhead
-  s(xFH,  fhApex, zFH,   xRRH,  ohwR, zRRH);       // right overhead
-  // Mid overhead cross-bar
+  const ohwR = Math.round(rrhw * 0.35);
+  s(xFH, -fhApex, zFH,  xRRH, -ohwR, zRRH);          // left overhead
+  s(xFH,  fhApex, zFH,  xRRH,  ohwR, zRRH);          // right overhead
   const xOH = Math.round((xFH + xRRH) / 2);
   const zOH = Math.round((zFH + zRRH) / 2);
   const wOH = Math.round((fhApex + ohwR) / 2);
-  s(xOH, -wOH, zOH,  xOH, wOH, zOH);
+  s(xOH, -wOH, zOH,  xOH, wOH, zOH);                 // mid overhead cross
 
   // ── RRH rear diagonal braces ──────────────────────────────────────────────────
   s(xRRH, -rrhw, zRRH,    xBrace, -rrhw, zFloor);
   s(xRRH,  rrhw, zRRH,    xBrace,  rrhw, zFloor);
 
-  // ── Rear sub-frame (brace feet → engine tip) ──────────────────────────────────
+  // ── Rear engine sub-frame ─────────────────────────────────────────────────────
   s(xBrace, -rrhw, zFloor,  xRE, -cwR, zFloor);
   s(xBrace,  rrhw, zFloor,  xRE,  cwR, zFloor);
-  s(xRE, -cwR, zFloor,      xRE,  cwR, zFloor);     // rear cross lower
-  // X-brace rear bay
-  s(xBrace, -rrhw, zFloor,  xRE,  cwR, zFloor);
-  s(xBrace,  rrhw, zFloor,  xRE, -cwR, zFloor);
-  // Upper rear rails (elevated for CVT / engine clearance)
-  const zRearUp = zFloor + 125;
-  s(xBrace, -rrhw, zFloor + 55,  xRE, -cwR * 0.72, zRearUp);
-  s(xBrace,  rrhw, zFloor + 55,  xRE,  cwR * 0.72, zRearUp);
-  s(xRE, -cwR * 0.72, zRearUp,   xRE,  cwR * 0.72, zRearUp);
+  s(xRE, -cwR, zFloor,      xRE,  cwR, zFloor);       // rear cross lower
+  s(xBrace, -rrhw, zFloor,  xRE,  cwR, zFloor);       // X-brace /
+  s(xBrace,  rrhw, zFloor,  xRE, -cwR, zFloor);       // X-brace \
+  const zRearUp = zFloor + 140;
+  s(xBrace, -rrhw, zFloor + 55,  xRE, -cwR * 0.7, zRearUp);  // upper L
+  s(xBrace,  rrhw, zFloor + 55,  xRE,  cwR * 0.7, zRearUp);  // upper R
+  s(xRE, -cwR * 0.7, zRearUp,    xRE,  cwR * 0.7, zRearUp);  // rear upper cross
 
   return buf;
 }

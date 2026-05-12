@@ -288,8 +288,11 @@ export function computeRollCenter(
 
   const denom = d1y * d2z - d1z * d2y;
   if (Math.abs(denom) < EPSILON) {
-    // Parallel → roll center at y=0 midpoint height
-    return { x: 0, y: 0, z: (contactLeft.z + contactRight.z) / 2 };
+    // IC-to-contact lines are parallel: roll center is at infinity.
+    // This occurs when the arms produce a very high or unreachable RC.
+    // Returning null lets callers treat it as zero geometric LLT contribution
+    // rather than fabricating an unphysical on-centreline value.
+    return null;
   }
 
   const dy = icRight.y - icLeft.y;

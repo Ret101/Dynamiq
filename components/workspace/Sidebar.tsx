@@ -42,19 +42,13 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Mode tabs */}
+      {/* Mode tabs — 2×2 grid */}
       <div className="px-1.5 mb-2 shrink-0">
-        <div className="flex rounded-md overflow-hidden border border-border bg-surface-2">
-          <ModeTab
-            label="Suspension"
-            active={appMode === 'suspension'}
-            onClick={() => setAppMode('suspension')}
-          />
-          <ModeTab
-            label="CVT Calc"
-            active={appMode === 'cvt'}
-            onClick={() => setAppMode('cvt')}
-          />
+        <div className="grid grid-cols-2 rounded-md overflow-hidden border border-border bg-surface-2">
+          <ModeTab label="Suspension" active={appMode === 'suspension'} onClick={() => setAppMode('suspension')} />
+          <ModeTab label="CVT Calc"   active={appMode === 'cvt'}        onClick={() => setAppMode('cvt')} />
+          <ModeTab label="Gearbox"    active={appMode === 'gearbox'}    onClick={() => setAppMode('gearbox')} borderTop />
+          <ModeTab label="Parts Ref"  active={appMode === 'reference'}  onClick={() => setAppMode('reference')} borderTop />
         </div>
       </div>
 
@@ -96,8 +90,21 @@ export function Sidebar() {
       {appMode === 'cvt' && (
         <div className="flex-1 px-2 py-1">
           <p className="text-2xs text-muted-foreground/60 leading-relaxed">
-            CVT Calculator — model belt CVT performance including ratio sweep, tractive force,
-            max speed, and gradeability.
+            CVT Calculator — model belt CVT performance including ratio sweep, tractive force, max speed, and gradeability.
+          </p>
+        </div>
+      )}
+      {appMode === 'gearbox' && (
+        <div className="flex-1 px-2 py-1">
+          <p className="text-2xs text-muted-foreground/60 leading-relaxed">
+            Gearbox Calculator — model multi-speed gearbox tractive force, acceleration, shift points, and top speed for any vehicle.
+          </p>
+        </div>
+      )}
+      {appMode === 'reference' && (
+        <div className="flex-1 px-2 py-1">
+          <p className="text-2xs text-muted-foreground/60 leading-relaxed">
+            Parts Reference — complete FSAE and Baja SAE component library with specs, materials, functions, and rule references.
           </p>
         </div>
       )}
@@ -111,12 +118,13 @@ export function Sidebar() {
   );
 }
 
-function ModeTab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function ModeTab({ label, active, onClick, borderTop }: { label: string; active: boolean; onClick: () => void; borderTop?: boolean }) {
   return (
     <button
       onClick={onClick}
       className={cn(
-        'flex-1 py-1 text-2xs font-medium transition-colors',
+        'py-1.5 text-2xs font-medium transition-colors leading-tight text-center',
+        borderTop && 'border-t border-border',
         active
           ? 'bg-brand text-black'
           : 'text-muted-foreground hover:text-foreground'

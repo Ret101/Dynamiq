@@ -119,6 +119,7 @@ export const defaultFSAEVehicle: VehicleSpec = {
   frontSuspension: {
     position: 'front_left',
     suspensionType: 'double_wishbone',
+    actuationType: 'pushrod',
     hardpoints: frontLeft,
     spring: {
       rate: 20,          // N/mm (≈114 lb/in) — competitive FSAE front
@@ -149,6 +150,7 @@ export const defaultFSAEVehicle: VehicleSpec = {
   rearSuspension: {
     position: 'rear_left',
     suspensionType: 'double_wishbone',
+    actuationType: 'pushrod',
     hardpoints: rearLeft,
     spring: {
       rate: 25,          // N/mm (≈143 lb/in) — competitive FSAE rear

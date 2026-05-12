@@ -426,31 +426,29 @@ export class CornerKinematicSolver {
     state: UprightState,
     rackTravel: number
   ): { toe: number; camberDelta: number } {
-    // Move tie rod chassis end by rack travel in Y direction
-    const tierodChassis = {
-      ...hp.tieRodChassis.position,
+    if (Math.abs(rackTravel) < 1e-10) return { toe: 0, camberDelta: 0 };
+
+    // Move the rack inner end in Y
+    const tierodChassis: Vec3 = {
+      x: hp.tieRodChassis.position.x,
       y: hp.tieRodChassis.position.y + rackTravel,
+      z: hp.tieRodChassis.position.z,
     };
 
-    // The tie rod upright end is constrained to be tierodLength from tierodChassis
-    // and also connected to the upright rigid body.
-    // For the steer angle, the toe changes as the rack moves.
-    // Simplified: the lateral displacement of the inner end changes the outer end
-    // position, rotating the upright about the kingpin axis.
-
-    // Tie rod length from static
-    const tieRodLength = this.tierodLength;
-
-    // Current distance from rack point to (bumped) tie rod upright end
+    // Stretch = change in tie rod length
     const currentDist = v3.distance(tierodChassis, state.tieRodUprightEnd);
-    const stretch = currentDist - tieRodLength;
+    const stretch = currentDist - this.tierodLength;
 
-    // Toe from tie rod: approximate as angle change
-    // The tie rod pushes/pulls the knuckle, rotating it about the kingpin axis.
-    // Simplified: toe_delta ≈ stretch / (tie rod moment arm about kingpin)
-    const momentArm = Math.abs(state.tieRodUprightEnd.y - state.wheelCenter.y);
-    const toe = momentArm > 1 ? -(stretch / momentArm) * DEG : 0;
+    // True 3D moment arm: perpendicular distance from the kingpin axis to the
+    // tie rod upright attachment.  Projecting out the component along the kingpin
+    // axis gives the correct linearised rotation arm for toe angle.
+    const kpAxis = state.kingpinAxis; // unit vector along kingpin (LCA→UCA ball joint)
+    const toTR   = v3.sub(state.tieRodUprightEnd, state.lcaBallJoint);
+    const kpProj = v3.dot(toTR, kpAxis);
+    const perpVec    = v3.sub(toTR, v3.scale(kpAxis, kpProj));
+    const momentArm3D = v3.length(perpVec);
 
+    const toe = momentArm3D > 1 ? -(stretch / momentArm3D) * DEG : 0;
     return { toe, camberDelta: 0 };
   }
 
@@ -500,9 +498,12 @@ export class CornerKinematicSolver {
     const antiSquat = antiDive; // simplified — proper calculation needs drivetrain geometry
     const antiLift  = 0; // simplified
 
+    // Do NOT clamp — values > 1 indicate over-constrained geometry (jack-up tendency),
+    // which is physically meaningful and must not be silently hidden from the engineer.
+    // Values < 0 indicate pro-dive/squat geometry (also valid).
     return {
-      antiDive:  Math.max(0, Math.min(1, antiDive)),
-      antiSquat: Math.max(0, Math.min(1, antiSquat)),
+      antiDive:  guardedNumber(antiDive),
+      antiSquat: guardedNumber(antiSquat),
       antiLift,
     };
   }

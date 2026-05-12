@@ -50,9 +50,12 @@ export interface ARBSpec {
   motionRatio: number;  // ARB motion ratio
 }
 
+export type ActuationType = 'direct' | 'pushrod' | 'pullrod';
+
 export interface SuspensionCorner {
   position: CornerPosition;
   suspensionType: SuspensionType;
+  actuationType?: ActuationType;  // how the spring-damper is driven
   hardpoints: CornerHardpoints;
   spring: SpringSpec;
   damper: DamperSpec;

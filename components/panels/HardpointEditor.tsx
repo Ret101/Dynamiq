@@ -83,7 +83,7 @@ const CORNERS: { key: CornerKey; label: string; short: string }[] = [
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function HardpointEditor() {
-  const { vehicle, updateHardpoint } = useProjectStore();
+  const { vehicle, updateHardpoint, updateActuationType } = useProjectStore();
   const { selectedHardpointId, selectHardpoint, mirrorEdits, setMirrorEdits } = useUIStore();
   const [activeCorner, setActiveCorner] = useState<CornerKey>('frontLeft');
   const [viewMode, setViewMode] = useState<'tree' | 'table'>('tree');
@@ -137,6 +137,14 @@ export function HardpointEditor() {
           </button>
         ))}
         <div className="flex-1" />
+        {vehicle.series === 'FSAE' && (
+          <ActuationSelector
+            frontType={vehicle.frontSuspension.actuationType ?? 'pushrod'}
+            rearType={vehicle.rearSuspension.actuationType ?? 'pushrod'}
+            onUpdate={updateActuationType}
+            activeCorner={activeCorner}
+          />
+        )}
         <button
           onClick={() => setMirrorEdits(!mirrorEdits)}
           title="Mirror edits across vehicle centreline (FL↔FR, RL↔RR)"
@@ -610,6 +618,46 @@ function VehicleSection({ vehicle, onSelect, selectedId }: {
             {p.position.x.toFixed(0)}, {p.position.y.toFixed(0)}, {p.position.z.toFixed(0)}
           </span>
         </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Pushrod / pullrod actuation selector (FSAE only) ────────────────────────
+
+type ActType = 'direct' | 'pushrod' | 'pullrod';
+const ACT_OPTIONS: { value: ActType; label: string; title: string }[] = [
+  { value: 'pushrod', label: 'Push', title: 'Pushrod: rod runs from upright up to inboard bellcrank' },
+  { value: 'pullrod', label: 'Pull', title: 'Pullrod: rod runs from upright down to inboard bellcrank' },
+];
+
+function ActuationSelector({
+  frontType, rearType, onUpdate, activeCorner,
+}: {
+  frontType: ActType;
+  rearType: ActType;
+  onUpdate: (axle: 'front' | 'rear', type: ActType) => void;
+  activeCorner: string;
+}) {
+  const axle = activeCorner.startsWith('front') ? 'front' : 'rear';
+  const current = axle === 'front' ? frontType : rearType;
+
+  return (
+    <div className="flex items-center gap-0.5 border border-border/50 rounded overflow-hidden">
+      {ACT_OPTIONS.map(opt => (
+        <button
+          key={opt.value}
+          onClick={() => onUpdate(axle, opt.value)}
+          title={opt.title}
+          className={cn(
+            'px-2 py-1 text-2xs font-medium transition-colors',
+            current === opt.value
+              ? 'bg-brand/20 text-brand'
+              : 'text-muted-foreground hover:text-foreground hover:bg-surface-3'
+          )}
+        >
+          {opt.label}
+        </button>
       ))}
     </div>
   );
