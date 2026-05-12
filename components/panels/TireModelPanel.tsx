@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useProjectStore } from '@/store/projectStore';
 import { PacejkaTireModel } from '@/engine/tire/pacejka';
 import { cn } from '@/lib/utils';
+import { Tip } from '@/components/ui/Tooltip';
 
 const LOADS = [500, 1000, 1500, 2000]; // N
 const LOAD_COLORS = ['#60a5fa', '#00d4ff', '#34d399', '#fb923c'];
@@ -62,7 +63,10 @@ export function TireModelPanel() {
 
       {/* Chart */}
       <div className="px-3 pt-3 shrink-0">
-        <div className="text-xs font-medium text-foreground mb-2">{title} — Pacejka Magic Formula</div>
+        <div className="flex items-center gap-1 text-xs font-medium text-foreground mb-2">
+          {title} — Pacejka Magic Formula
+          <Tip title="Pacejka Magic Formula" body="Industry-standard semi-empirical tire model. Each curve shows lateral (Fy) or longitudinal (Fx) force vs slip at a different vertical load (Fz). Curves flatten at higher loads — this is the load sensitivity effect that makes tire loading balance so critical." formula="F = D × sin(C × arctan(B×α − E×(B×α − arctan(B×α))))" range="Lateral peak typically at 3–7° slip angle" />
+        </div>
         <MultiLineChart
           datasets={curves.map((pts, i) => ({ points: pts, color: LOAD_COLORS[i], label: `${LOADS[i]}N` }))}
           width={256}
@@ -84,21 +88,24 @@ export function TireModelPanel() {
 
       {/* Pacejka coefficients */}
       <div className="px-3 pt-3 pb-3">
-        <div className="text-2xs text-muted-foreground mb-2 uppercase tracking-wide">Pacejka Coefficients ({axle})</div>
+        <div className="flex items-center gap-1 text-2xs text-muted-foreground mb-2 uppercase tracking-wide">
+          Pacejka Coefficients ({axle})
+          <Tip title="BCDE Coefficients" body="B = stiffness factor (slope at origin). C = shape factor (controls curve shape, 1–2). D = peak value (≈ μ × Fz). E = curvature (controls how quickly curve drops after peak, usually negative)." />
+        </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1">
           {axis === 'lateral' ? (
             <>
-              <CoeffRow label="By (stiffness)" val={tireSpec.pacejka.B_y} />
-              <CoeffRow label="Cy (shape)" val={tireSpec.pacejka.C_y} />
-              <CoeffRow label="Dy (peak)" val={tireSpec.pacejka.D_y} />
-              <CoeffRow label="Ey (curvature)" val={tireSpec.pacejka.E_y} />
+              <CoeffRow label="By (stiffness)" val={tireSpec.pacejka.B_y} tip="Cornering stiffness factor. Higher B = sharper initial slope (more responsive tire)." />
+              <CoeffRow label="Cy (shape)" val={tireSpec.pacejka.C_y} tip="Shape factor. C=1.3 typical for lateral. Determines how wide the curve is." />
+              <CoeffRow label="Dy (peak)" val={tireSpec.pacejka.D_y} tip="Peak friction coefficient μ. Fy_peak = Dy × Fz. Higher = grippier tire." />
+              <CoeffRow label="Ey (curvature)" val={tireSpec.pacejka.E_y} tip="Curvature factor. Negative = curve drops off less sharply after peak slip angle." />
             </>
           ) : (
             <>
-              <CoeffRow label="Bx (stiffness)" val={tireSpec.pacejka.B_x} />
-              <CoeffRow label="Cx (shape)" val={tireSpec.pacejka.C_x} />
-              <CoeffRow label="Dx (peak)" val={tireSpec.pacejka.D_x} />
-              <CoeffRow label="Ex (curvature)" val={tireSpec.pacejka.E_x} />
+              <CoeffRow label="Bx (stiffness)" val={tireSpec.pacejka.B_x} tip="Longitudinal stiffness factor. Governs initial slope of Fx vs slip ratio." />
+              <CoeffRow label="Cx (shape)" val={tireSpec.pacejka.C_x} tip="Shape factor for longitudinal. C=1.5 typical." />
+              <CoeffRow label="Dx (peak)" val={tireSpec.pacejka.D_x} tip="Peak longitudinal friction coefficient. Fx_peak = Dx × Fz." />
+              <CoeffRow label="Ex (curvature)" val={tireSpec.pacejka.E_x} tip="Curvature factor for longitudinal force." />
             </>
           )}
         </div>
@@ -173,10 +180,13 @@ function MultiLineChart({ datasets, width, height, xLabel, yLabel }: {
 
 export { MultiLineChart };
 
-function CoeffRow({ label, val, unit }: { label: string; val: number; unit?: string }) {
+function CoeffRow({ label, val, unit, tip }: { label: string; val: number; unit?: string; tip?: string }) {
   return (
     <div className="flex justify-between text-2xs">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-muted-foreground flex items-center gap-0.5">
+        {label}
+        {tip && <Tip title={label} body={tip} />}
+      </span>
       <span className="font-mono text-foreground">{val.toFixed(3)}{unit ? ` ${unit}` : ''}</span>
     </div>
   );

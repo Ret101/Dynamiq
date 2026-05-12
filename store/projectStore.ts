@@ -64,7 +64,7 @@ export interface ProjectStore {
 
   // Actions
   setVehicle: (vehicle: VehicleSpec) => void;
-  updateHardpoint: (id: string, axis: 'x' | 'y' | 'z', value: number, mirror?: boolean) => void;
+  updateHardpoint: (id: string, axis: 'x' | 'y' | 'z', value: number) => void;
   updateMetadata: (metadata: Partial<ProjectMetadata>) => void;
   updateSettings: (settings: Partial<SimulationSettings>) => void;
   setFrontSweep: (sweep: KinematicSweep) => void;
@@ -135,22 +135,18 @@ export const useProjectStore = create<ProjectStore>()(
           state.metadata.modified = new Date().toISOString();
         }),
 
-      updateHardpoint: (id, axis, value, mirror = true) =>
+      updateHardpoint: (id, axis, value) =>
         set((state) => {
-          const update = (obj: unknown): boolean => {
-            if (typeof obj !== 'object' || obj === null) return false;
+          // Update ALL instances with matching id — same hardpoint is stored in both
+          // suspension corners and allHardpoints, both must be in sync.
+          const update = (obj: unknown): void => {
+            if (typeof obj !== 'object' || obj === null) return;
             const record = obj as Record<string, unknown>;
             if ('id' in record && record.id === id && 'position' in record) {
               (record.position as Record<string, number>)[axis] = value;
-              if (mirror && axis === 'y' && 'symmetry' in record && record.symmetry) {
-                // Find the mirrored hardpoint and update it too
-              }
-              return true;
+              return;
             }
-            for (const v of Object.values(record)) {
-              if (update(v)) return true;
-            }
-            return false;
+            for (const v of Object.values(record)) update(v);
           };
           update(state.vehicle);
           pushHistory(state, state.vehicle);

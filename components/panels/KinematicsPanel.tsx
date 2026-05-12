@@ -7,6 +7,7 @@ import { sweepCornerAsync } from '@/engine/kinematics/sweepSolver';
 import { VehicleKinematicSolver } from '@/engine/kinematics/vehicleKinematics';
 import type { CornerKinematics } from '@/types/kinematics';
 import { cn } from '@/lib/utils';
+import { Tip } from '@/components/ui/Tooltip';
 
 // ─── Semantic color ranges ────────────────────────────────────────────────────
 // Returns a Tailwind class based on whether the value is in good/caution/danger zone
@@ -384,13 +385,13 @@ function KRow({ label, v, b, u, fmt, range, ref_ }: KRowProps) {
     ? `${delta >= 0 ? '+' : ''}${delta.toFixed(fmt)}`
     : null;
 
+  const rangeStr = range ? `Good: ${range.good[0]} to ${range.good[1]} ${u}` : undefined;
+
   return (
     <div className="flex items-center justify-between px-3 py-0.5 hover:bg-surface-2 group transition-colors rounded-sm mx-1">
-      <span
-        className={cn('text-xs w-24 truncate transition-colors', ref_ ? 'text-muted-foreground hover:text-foreground cursor-help' : 'text-muted-foreground')}
-        title={ref_}
-      >
-        {label}{ref_ && <span className="text-brand/40 ml-0.5 text-2xs">?</span>}
+      <span className="flex items-center gap-0.5 text-xs w-24 shrink-0 text-muted-foreground">
+        <span className="truncate">{label}</span>
+        {ref_ && <Tip title={label} body={ref_} range={rangeStr} />}
       </span>
       <div className="flex items-baseline gap-1.5">
         {deltaStr && (

@@ -31,9 +31,11 @@ export function Sidebar() {
     <aside className="w-44 bg-surface-1 border-r border-border flex flex-col py-2 shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-3 mb-3 mt-1 shrink-0">
-        <div className="w-7 h-7 bg-brand rounded flex items-center justify-center shrink-0">
-          <span className="text-black font-bold text-xs tracking-tight">DQ</span>
-        </div>
+        <img
+          src="/Dynamiq/logo.png"
+          alt="Dynamiq"
+          className="w-7 h-7 rounded object-contain bg-white p-0.5 shrink-0"
+        />
         <div className="flex flex-col leading-none">
           <span className="text-xs font-semibold text-foreground tracking-wide">Dynamiq</span>
           <span className="text-2xs text-muted-foreground/60 mt-0.5">Vehicle Engineering</span>

@@ -88,6 +88,21 @@
            focus:ring-brand focus:border-brand transition-colors;
   }
 
+  /* Compact dark-themed number/text input for dense panels */
+  .input-sm {
+    @apply bg-surface-2 border border-border/70 rounded px-2 py-1
+           text-xs font-mono text-foreground
+           placeholder:text-muted-foreground/50
+           focus:outline-none focus:border-brand focus:bg-surface-3
+           transition-colors;
+    -moz-appearance: textfield;
+  }
+  .input-sm::-webkit-outer-spin-button,
+  .input-sm::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
   .badge {
     @apply text-2xs font-mono px-1.5 py-0.5 rounded-sm;
   }

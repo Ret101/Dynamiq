@@ -3,7 +3,9 @@
  * All coordinates in mm, SAE J670 convention (X=forward, Y=left, Z=up).
  * Origin at front axle centerline, centerline of vehicle, ground plane.
  *
- * This template represents a typical 60" wheelbase, 48" track FSAE vehicle.
+ * Represents a competitive 2024-era FSAE steel spaceframe:
+ *   WB ≈ 1600mm (63"), track ≈ 1220mm (48"), Hoosier 18x6-10 (r=228mm)
+ *   Total mass ~200kg with driver, CG ~290mm above ground
  */
 
 import type { VehicleSpec } from '@/types/suspension';
@@ -30,10 +32,10 @@ function hp(
   };
 }
 
-const TRACK_HALF   = 609.6;  // 48" / 2 = 24" = 609.6mm
-const WHEELBASE    = 1524;   // 60"
-const RIDE_HEIGHT  = 25.4;   // 1"
-const WHEEL_RADIUS = 254;    // 10" radius (20" wheel)
+const TRACK_HALF   = 610;    // 1220mm total track (~48") — competitive FSAE
+const WHEELBASE    = 1600;   // 1600mm (~63") — typical 2024 FSAE car
+const RIDE_HEIGHT  = 25;     // 25mm — slick/dry setup
+const WHEEL_RADIUS = 228;    // Hoosier 18x6-10: OD ~457mm → r ≈ 228mm
 
 // === FRONT LEFT CORNER (positive Y = left side) ===
 const frontLeft = {
@@ -98,13 +100,13 @@ const rearRight = {
 
 export const defaultFSAEVehicle: VehicleSpec = {
   name: 'FSAE Default Vehicle',
-  description: 'Formula SAE double wishbone template — 60" WB, 48" track',
+  description: 'Formula SAE double wishbone template — 1600mm WB, 1220mm track, Hoosier 18x6-10',
   series: 'FSAE',
 
-  mass: 270,
-  sprungMass: 220,
-  frontWeightDist: 0.47,
-  cgHeight: 310,
+  mass: 200,
+  sprungMass: 165,
+  frontWeightDist: 0.45,
+  cgHeight: 290,
   cgLongitudinal: WHEELBASE * 0.53,
   cgLateral: 0,
 
@@ -119,7 +121,7 @@ export const defaultFSAEVehicle: VehicleSpec = {
     suspensionType: 'double_wishbone',
     hardpoints: frontLeft,
     spring: {
-      rate: 14,          // N/mm (≈80 lb/in)
+      rate: 20,          // N/mm (≈114 lb/in) — competitive FSAE front
       freeLength: 152.4, // mm (6")
       preload: 0,
       type: 'linear',
@@ -149,7 +151,7 @@ export const defaultFSAEVehicle: VehicleSpec = {
     suspensionType: 'double_wishbone',
     hardpoints: rearLeft,
     spring: {
-      rate: 17.5,        // N/mm (≈100 lb/in)
+      rate: 25,          // N/mm (≈143 lb/in) — competitive FSAE rear
       freeLength: 139.7, // mm (5.5")
       preload: 0,
       type: 'linear',
@@ -179,7 +181,7 @@ export const defaultFSAEVehicle: VehicleSpec = {
     frontRight,
     rearLeft,
     rearRight,
-    cg: hp('CG', WHEELBASE * 0.53, 0, 310, 'cg', 'center'),
+    cg: hp('CG', WHEELBASE * 0.53, 0, 290, 'cg', 'center'),
     frontRackLeft:  hp('Rack Left',  20,  105, 80, 'rack'),
     frontRackRight: hp('Rack Right', 20, -105, 80, 'rack', 'right'),
   },

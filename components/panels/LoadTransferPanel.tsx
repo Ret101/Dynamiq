@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useProjectStore } from '@/store/projectStore';
 import { useUIStore } from '@/store/uiStore';
 import { MultiLineChart } from './TireModelPanel';
+import { Tip } from '@/components/ui/Tooltip';
 
 export function LoadTransferPanel() {
   const { vehicle, currentKinematics } = useProjectStore();
@@ -99,7 +100,10 @@ export function LoadTransferPanel() {
       <div className="px-3 py-3 flex flex-col gap-4">
         {/* LT vs Ay curve */}
         <div>
-          <div className="text-xs font-medium text-foreground mb-2">Lateral Load Transfer vs Ay</div>
+          <div className="flex items-center gap-1 text-xs font-medium text-foreground mb-2">
+            Lateral Load Transfer vs Ay
+            <Tip title="Lateral Load Transfer" body="How much vertical load transfers from the inside wheel to the outside wheel during cornering. Higher LLT reduces total tire grip because tires are nonlinear — the overloaded outer tire can't compensate fully for the unloaded inner tire." formula="ΔFz = (Geometric + Elastic + Unsprung) × ay" range="FSAE: 0.2–0.5 kN/g per axle" />
+          </div>
           <MultiLineChart
             datasets={[
               { points: ltCurve.f, color: '#60a5fa', label: 'Front' },
@@ -116,7 +120,10 @@ export function LoadTransferPanel() {
 
         {/* Breakdown @ 1g */}
         <div>
-          <div className="text-xs font-medium text-foreground mb-2">Breakdown @ 1g lateral</div>
+          <div className="flex items-center gap-1 text-xs font-medium text-foreground mb-2">
+            Breakdown @ 1g lateral
+            <Tip title="LLT Components" body="Three independent mechanisms contribute to lateral load transfer. Geometric (from roll center height) acts instantly with no body roll. Elastic (from springs + ARB) depends on body roll and stiffness ratio. Unsprung (wheel/upright mass) is proportional to unsprung CG height." />
+          </div>
           <div className="grid grid-cols-3 gap-1 text-2xs mb-2">
             <div className="text-muted-foreground">Component</div>
             <div className="text-muted-foreground text-right">Front</div>
@@ -136,7 +143,10 @@ export function LoadTransferPanel() {
 
         {/* Longitudinal */}
         <div>
-          <div className="text-xs font-medium text-foreground mb-2">Longitudinal ΔFz @ 1g</div>
+          <div className="flex items-center gap-1 text-xs font-medium text-foreground mb-2">
+            Longitudinal ΔFz @ 1g
+            <Tip title="Longitudinal Load Transfer" body="Under braking/acceleration, weight shifts front-to-rear (braking) or rear-to-front (acceleration). This affects available traction per axle and brake bias requirements." formula="ΔFz = W × ax × h / L" range="Braking: front gains ~0.3–0.5 kN/g for typical FSAE" />
+          </div>
           <div className="grid grid-cols-2 gap-y-1 text-2xs">
             <Spec label="Front gain (braking)" val={`+${longLT.front.toFixed(3)} kN`} />
             <Spec label="Rear loss (braking)"  val={`${longLT.rear.toFixed(3)} kN`} />
@@ -163,10 +173,19 @@ export function LoadTransferPanel() {
   );
 }
 
+const LT_ROW_TIPS: Record<string, string> = {
+  Geometric: 'Comes directly from roll center height. ΔFz = W × ay × RC_height / track. Zero if roll center is at ground.',
+  Elastic:   'Springs and ARBs resist body roll. Load transferred = roll stiffness × roll angle / track. Controlled by spring rates and ARB stiffness.',
+  Unsprung:  'Wheel, upright, and hub mass centrifugally loaded by lateral acceleration. Small but not zero. Height ≈ 100mm above ground.',
+};
+
 function LTRow({ label, f, r }: { label: string; f: number; r: number }) {
   return (
     <>
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-muted-foreground flex items-center gap-0.5">
+        {label}
+        {LT_ROW_TIPS[label] && <Tip title={label} body={LT_ROW_TIPS[label]} />}
+      </span>
       <span className="font-mono text-foreground text-right">{f.toFixed(3)}</span>
       <span className="font-mono text-foreground text-right">{r.toFixed(3)}</span>
     </>

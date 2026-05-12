@@ -155,7 +155,7 @@ function useHardpointKeyboard() {
 
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps — intentionally reads from ref
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 /** Recursively find a Hardpoint by id inside VehicleSpec.allHardpoints. */
